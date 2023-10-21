@@ -1,0 +1,509 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"
+    />
+
+    <title>lection 26</title>
+
+    <link rel="stylesheet" href="dist/reset.css" />
+    <link rel="stylesheet" href="dist/reveal.css" />
+    <link rel="stylesheet" href="dist/theme/black.css" />
+
+    <!-- Theme used for syntax highlighted code -->
+    <link rel="stylesheet" href="plugin/highlight/monokai.css" />
+  </head>
+  <body>
+    <div class="reveal">
+      <div class="slides">
+        <section>
+          <div>
+            <h1>Уведомления</h1>
+          </div>
+        </section>
+        <section>
+          <h3>Для чего используется уведомления</h3>
+          <p>
+            Во время разработки приложений часто нужно уведомлять пользователей о различных изменениях или действиях. Это могут быть email-уведомлений при изменении статуса заказа, либо отправка сообщений в Slack при завершении фоновой задачи приложения. 
+          </p>
+        </section>
+        <section>
+          <h3>Laravel Notifications</h3>
+          <p>
+            Laravel Notifications решает эту проблему, предоставляя элегантный и удобный способ отправки уведомлений пользователям.
+          </p>
+        </section>
+        <section>
+          <h3>Каналы Уведомлений</h3>
+          <ul>
+            <li>Mail: уведомления будут отправлены пользователям в виде электронных писем.</li>
+            <li>SMS: пользователи будут получать уведомления на свои мобильные телефоны.</li>
+            <li>Database: эта опция позволяет вам сохранять уведомления в базе данных, которые далее своим способом можно показывать пользователям.</li>
+            <li>Slack: эта опция позволяет отправлять уведомления в канал Slack.</li>
+          </ul>
+        </section>
+		<section>
+			<h3>Создание Уведомления</h3>
+			<p>
+				Уведомления Laravel просты в использовании, так как они генерируют отдельный класс для каждого уведомления. В этом классе мы можем описать, как будем доставлять уведомления пользователям.
+			</p>
+			<pre>
+        <code data-line-numbers="" style="color:white">php artisan make:notification NewUser</code>
+      </pre>
+		</section>
+		<section>
+			<h3>Файл Уведомления</h3>
+			<pre data-lang="php">
+        <code data-line-numbers="8|26-29|36-42|49-54" class="php">namespace App\Notifications;
+
+use Illuminate\Bus\Queueable;
+use Illuminate\Contracts\Queue\ShouldQueue;
+use Illuminate\Notifications\Messages\MailMessage;
+use Illuminate\Notifications\Notification;
+
+class NewUser extends Notification
+{
+  use Queueable;
+  /**
+  * Создание нового экземпляра уведомления
+  *
+  * @return void
+  */
+  public function __construct()
+  {
+    //
+  }
+  /**
+  * Получение каналов доставки уведомления
+  *
+  * @param  mixed  $notifiable
+  * @return array
+  */
+  public function via($notifiable)
+  {
+      return ['mail'];
+  }
+  /**
+  * Получение шаблона почтового уведомления
+  *
+  * @param  mixed  $notifiable
+  * @return \Illuminate\Notifications\Messages\MailMessage
+  */
+  public function toMail($notifiable)
+  {
+    return (new MailMessage)
+      ->line('The introduction to the notification.')
+      ->action('Notification Action', url('/'))
+      ->line('Thank you for using our application!');
+  }
+  /**
+  * Получение массива уведомления
+  *
+  * @param  mixed  $notifiable
+  * @return array
+  */
+  public function toArray($notifiable)
+  {
+    return [
+      //
+    ];
+  }
+}</code>
+      </pre>
+		</section>
+		<section>
+			<h4>Запуск Уведомлений</h4>
+      <p>
+        Чтобы включить уведомления Laravel для модели User, нужно использовать трейт Notifiable, как показано ниже
+      </p>
+			<pre><code data-line-numbers="">namespace App;
+
+use Illuminate\Notifications\Notifiable;
+use Illuminate\Foundation\Auth\User as Authenticatable;
+
+class User extends Authenticatable
+{
+    use Notifiable;
+}
+			</code></pre>
+		</section>
+    <section>
+      <h3>Не забудьте настроить ваш почтовый сервер</h3>
+      <pre><code data-line-numbers="">MAIL_DRIVER=smtp
+MAIL_HOST=smtp.googlemail.com
+MAIL_PORT=465
+MAIL_USERNAME=ENTER_YOUR_EMAIL_ADDRESS(GMAIL)
+MAIL_PASSWORD=ENTER_YOUR_GMAIL_PASSWORD
+MAIL_ENCRYPTION=ssl</code></pre>
+    </section>
+		<section>
+			<h3>Отправка увдедомления</h3>
+      <p>
+        Два одинаковых способа:
+      </p>
+			<pre><code data-line-numbers="">$user->notify(new App\Notifications\NewUser);</code></pre>
+      <pre><code data-line-numbers="">Notification::send($user, new App\Notifications\NewUser);</code></pre>
+		</section>
+		<section>
+			<h3>Результат уведомления</h3>
+      <img src="img/img1.png" alt="">
+		</section>
+    <section>
+      <h3>Добавление нового канала</h3>
+      <pre><code data-line-numbers="28-31">namespace App\Notifications;
+
+use Illuminate\Bus\Queueable;
+use Illuminate\Contracts\Queue\ShouldQueue;
+use Illuminate\Notifications\Messages\MailMessage;
+use Illuminate\Notifications\Notification;
+
+class NewUser extends Notification
+{
+    use Queueable;
+
+    /**
+     * Создание нового экземпляра уведомления
+     *
+     * @return void
+     */
+    public function __construct()
+    {
+        //
+    }
+
+    /**
+     * Получение каналов доставки уведомления
+     *
+     * @param  mixed  $notifiable
+     * @return array
+     */
+    public function via($notifiable)
+    {
+        return ['mail', 'database'];
+    }
+
+    /**
+     * Получение шаблона почтового уведомления
+     *
+     * @param  mixed  $notifiable
+     * @return \Illuminate\Notifications\Messages\MailMessage
+     */
+    public function toMail($notifiable)
+    {
+        return (new MailMessage)
+                    ->line('Welcome to our application, you now can use our application.')
+                    ->action('Visit Your Account', url('/'))
+                    ->line('Thank you for using our application!');
+    }
+
+    /**
+     * Получение массива уведомления
+     *
+     * @param  mixed  $notifiable
+     * @return array
+     */
+    public function toArray($notifiable)
+    {
+        return [
+            'message'   =>  'Аккаунт успешно зарегистрирован.'
+        ];
+    }
+}</code></pre>
+    </section>
+    <section>
+      <h3>Создание таблиц под базу данных</h3>
+      <p>
+        Для генерации используется отдельные команды
+      </p>
+      <pre><code data-line-numbers="">php artisan notifications:table
+php artisan migrate</code></pre>
+    </section>
+        <section>
+          <h3>Отношение в User и notifications</h3>
+          <p>Laravel предоставляет несколько методов для доступа и удаления уведомлений базы данных. Модель User использует трейт Notifiable, который включает отношение, возвращающее уведомления для пользователя.</p>
+          <pre><code data-line-numbers="">$user = auth()->user();
+foreach ($user->unreadNotifications as $notification) {
+    echo $notification->type;
+}</code></pre>
+        </section>
+        <section>
+          <h3>Возможности notifications</h3>
+          <p>Для получения всех непрочитанных уведомлений:</p>
+          <pre><code data-line-numbers="">foreach ($user->unreadNotifications as $notification) {
+    //
+}</code>
+		</pre>
+        <p>Отметить уведомления как прочитанные:</p>
+        <pre><code data-line-numbers="">foreach ($user->unreadNotifications as $notification) {
+    $notification->markAsRead();
+}</code></pre>
+        </section>
+        <section>
+          <h3>Возможности notifications</h3>
+          <p>Чтобы пометить все уведомления как прочитанные, используйте метод markAsRead() непосредственно в коллекции уведомлений.</p>
+          <pre>
+			<code data-line-numbers="">$user->unreadNotifications->markAsRead();
+      </code>
+		  </pre>
+      <p>Чтобы удалить все уведомления для конкретной модели User:</p>
+      <pre><code data-line-numbers="">$user->notifications()->delete();</code></pre>
+        </section>
+        <section>
+          <h3>Доставка в очереди вместо выполнения на месте</h3>
+          <pre><code data-line-numbers="9-11">
+
+namespace App\Notifications;
+
+use Illuminate\Bus\Queueable;
+use Illuminate\Contracts\Queue\ShouldQueue;
+use Illuminate\Notifications\Notification;
+
+class InvoicePaid extends Notification implements ShouldQueue
+{
+    use Queueable;
+
+    // ...
+}</code></pre>
+        </section>
+        <section>
+        <h3>Delay отправки</h3>
+        <pre><code data-line-numbers="">$delay = now()->addMinutes(10);
+
+$user->notify((new InvoicePaid($invoice))->delay($delay));</code></pre>
+<pre><code data-line-numbers="">$user->notify((new InvoicePaid($invoice))->delay([
+  'mail' => now()->addMinutes(5),
+  'sms' => now()->addMinutes(10),
+]));</code></pre>
+        </section>
+        <section>
+          <h3>Уведомление по запросу</h3>
+          <pre><code data-line-numbers="">Notification::route('mail', 'taylor@example.com')
+            ->route('nexmo', '5555555555')
+            ->route('slack', 'https://hooks.slack.com/services/...')
+            ->notify(new InvoicePaid($invoice));</code></pre>
+        </section>
+        <section>
+          <h3>Трансляция уведомлений</h3>
+          <pre><code data-line-numbers="">**
+ * Получить содержимое транслируемого уведомления.
+ *
+ * @param  mixed  $notifiable
+ * @return BroadcastMessage
+ */
+public function toBroadcast($notifiable)
+{
+    return new BroadcastMessage([
+        'invoice_id' => $this->invoice->id,
+        'amount' => $this->invoice->amount,
+    ]);
+}</code></pre>
+        </section>
+        <section>
+          <h3>Настройка Echo</h3>
+          <pre><code>Echo.private('App.Models.User.' + userId)
+    .notification((notification) => {
+        console.log(notification.type);
+    });
+    </code>
+          </pre>
+        </section>
+        <section>
+          <h3>Добавление канала прослушки</h3>
+          <pre><code data-line-numbers="16-19">namespace App\Models;
+
+use Illuminate\Broadcasting\PrivateChannel;
+use Illuminate\Foundation\Auth\User as Authenticatable;
+use Illuminate\Notifications\Notifiable;
+
+class User extends Authenticatable
+{
+    use Notifiable;
+
+    /**
+     * Каналы, по которым пользователь получает рассылку уведомлений.
+     *
+     * @return string
+     */
+    public function receivesBroadcastNotificationsOn()
+    {
+        return 'users.'.$this->id;
+    }
+}</code></pre>
+        </section>
+        <section>
+          <h3>Уведомления через sms</h3>
+          <p>Отправка SMS-уведомлений в Laravel обеспечивается Vonage (бывший Nexmo). Прежде чем вы сможете отправлять уведомления через Vonage, вам необходимо установить пакеты Composer:</p>
+          <pre><code>composer require laravel/nexmo-notification-channel nexmo/laravel</code></pre>
+        </section>  
+        <section>
+          <h3>Конфиг nexmo</h3>
+          <p>
+            Затем вам нужно будет добавить запись nexmo в ваш конфигурационный файл config/services.php:
+          </p>
+          <pre><code data-line-numbers="">'nexmo' => [
+  'sms_from' => '15556666666',
+],</code></pre>
+        </section>
+        <section>
+            <h3>Формирование sms</h3>
+            <pre><code>/**
+ * Получить SMS-представление уведомления.
+ *
+ * @param  mixed  $notifiable
+ * @return \Illuminate\Notifications\Messages\NexmoMessage
+ */
+public function toNexmo($notifiable)
+{
+    return (new NexmoMessage)
+                ->content('Your SMS message content');
+}</code></pre>
+        </section>
+        <section>
+          <h3>Маршрутизация sms уведомлений</h3>
+          <pre><code data-line-numbers="18-21">
+
+namespace App\Models;
+
+use Illuminate\Foundation\Auth\User as Authenticatable;
+use Illuminate\Notifications\Notifiable;
+
+class User extends Authenticatable
+{
+    use Notifiable;
+
+    /**
+     * Маршрутизация уведомлений для канала Nexmo.
+     *
+     * @param  \Illuminate\Notifications\Notification  $notification
+     * @return string
+     */
+    public function routeNotificationForNexmo($notification)
+    {
+        return $this->phone_number;
+    }
+}</code></pre>
+        </section>
+        <section>
+          <h3>Локализация уведомлений</h3>
+          <p>Laravel позволяет отправлять уведомления, используя язык, отличный от текущего языка запроса, и даже будет помнить его, если уведомление находится в очереди.</p>
+          <pre><code data-line-numbers="">$user->notify((new InvoicePaid($invoice))->locale('ru'));</code></pre>
+        </section>
+        <section>
+          <h3>Шаблон наблюдателя</h3>
+          <p>Шаблон наблюдателя — это популярный шаблон проектирования, используемый в объектно-ориентированном программировании для установления отношения «один ко многим» между объектами, где изменение состояния одного объекта (субъекта) запускает автоматическое обновление одного или нескольких других объектов (наблюдателей), которые зависят от него. </p>
+        </section>
+        <section>
+          <h3>Детали шаблона наблюдателя</h3>
+          <p style="font-size: 28px">Прежде чем мы углубимся в реализацию Observer Pattern в PHP, давайте сначала разберемся с его ключевыми компонентами:</p>
+          <ol style="font-size: 28px">
+            <li>Субъект – это объект, за которым наблюдаются. Он ведет список своих наблюдателей и автоматически уведомляет их об изменении своего состояния.</li>
+            <li>Наблюдатель – это объект, который заинтересован в изменении состояния субъекта. Он регистрируется в теме и получает обновления при ее изменении.</li>
+            <li>Конкретный субъект - это конкретная реализация субъекта, которая содержит фактические данные, которые можно наблюдать. В нем реализован предметный интерфейс.</li>
+            <li>Конкретный наблюдатель — это конкретная реализация наблюдателя, которая получает уведомления от субъекта и соответствующим образом обновляет себя. В нем реализован интерфейс наблюдателя.</li>
+          </ol>
+
+        </section>
+        <section >
+          <h3>Реализация шаблона</h3>
+          <pre><code data-line-numbers="">interface SubjectInterface {
+  public function attach(ObserverInterface $observer);
+  public function detach(ObserverInterface $observer);
+  public function notify();
+}</code></pre>
+        <ol style="font-size: 28px">
+          <li>attach(): Этот метод принимает объект наблюдателя в качестве параметра и добавляет его в список наблюдателей, заинтересованных в изменениях состояния субъекта.</li>
+          <li>detach(): Этот метод принимает объект наблюдателя в качестве параметра и удаляет его из списка наблюдателей.</li>
+          <li>notify(): Этот метод уведомляет всех наблюдателей в списке о том, что состояние субъекта изменилось.</li>
+        </ol>
+        </section>
+        <section>
+          <h3>Создание конкретного субъекта</h3>
+          <pre><code data-line-numbers="1|2-3|5-7|9-14|16-20|22-25|27-29">class ConcreteSubject implements SubjectInterface {
+  private $observers = [];
+  private $state;
+
+  public function attach(ObserverInterface $observer) {
+    $this->observers[] = $observer;
+  }
+
+  public function detach(ObserverInterface $observer) {
+    $key = array_search($observer, $this->observers, true);
+    if ($key !== false) {
+      unset($this->observers[$key]);
+    }
+  }
+
+  public function notify() {
+    foreach ($this->observers as $observer) {
+      $observer->update($this);
+    }
+  }
+
+  public function setState($state) {
+    $this->state = $state;
+    $this->notify();
+  }
+
+  public function getState() {
+    return $this->state;
+  }
+}</code></pre>
+        </section>
+        <section>
+          <h3>Создание конкретного наблюдателя</h3>
+          <pre><code data-line-numbers="">class ConcreteObserver implements ObserverInterface {
+  private $id;
+
+  public function __construct($id) {
+    $this->id = $id;
+  }
+
+  public function update(SubjectInterface $subject) {
+    echo "Observer {$this->id} notified with new state: {$subject->getState()}\n";
+  }
+}</code></pre>
+        </section>
+        <section>
+          <h3>Примеры реализации</h3>
+          <pre><code data-line-numbers="">$subject = new ConcreteSubject();
+
+$observer1 = new ConcreteObserver(1);
+$subject->attach($observer1);
+
+$observer2 = new ConcreteObserver(2);
+$subject->attach($observer2);
+
+$observer3 = new ConcreteObserver(3);
+$subject->attach($observer3);
+
+$subject->setState('new state');</code></pre>
+        </section>
+      </div>
+    </div>
+
+    <script src="dist/reveal.js"></script>
+    <script src="plugin/notes/notes.js"></script>
+    <script src="plugin/markdown/markdown.js"></script>
+    <script src="plugin/highlight/highlight.js"></script>
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js" integrity="sha256-/JqT3SQfawRcv/BIHPThkBvs0OEvtFFmqPF/lYI/Cxo=" crossorigin="anonymous"></script>
+    <script>
+      // More info about initialization & config:
+      // - https://revealjs.com/initialization/
+      // - https://revealjs.com/config/
+      Reveal.initialize({
+        hash: true,
+        // Learn about plugins: https://revealjs.com/plugins/
+        plugins: [RevealMarkdown, RevealHighlight, RevealNotes],
+      });
+
+// $("pre code").each(function(){
+//     var html = $(this).html();
+//     var pattern = html.match(/\s*\n[\t\s]*/);
+//     $(this).html(html.replace(new RegExp(pattern, "g"),'\n'));
+// });
+    </script>
+  </body>
+</html>
